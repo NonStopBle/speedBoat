@@ -6,13 +6,15 @@
 #include "JoystickController.h"
 #include "System.h"
 #include "RCController.h"
+#include "WEBDebugger.h"
 
 void setup() {
   motor_initial();
   interface_initial();
   system_initial();
   storage_initial();
-  imu_initial();
+//  imu_initial();
+  
 
   if (isRCRemote) {
     rc_control_initial();
@@ -20,7 +22,8 @@ void setup() {
   else {
     joystick_initial();
   }
-  set_param_heading(30.00 , 0.0025 , 0.00 , 3500);
+  
+  set_param_heading(25.00 , 0.0025 , 0.00 , 3500);
 }
 
 float baseSpeed = 0;
@@ -105,10 +108,6 @@ void mainControl() {
     }
 
   }
-
-
-
-  //    Serial.printf("%d , %d , %d , %d \n ", modeSelector, joyButton(R1) , HeadingSpeed.speedLeft  ,HeadingSpeed.speedRight);
 
 
   OTA_RUNTIME();
