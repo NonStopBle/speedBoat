@@ -1,5 +1,8 @@
 //#include "soc/gpio_struct.h"  // For low-level GPIO control
 //#include "driver/gpio.h"      // For GPIO configuration
+
+void webSerialInitial();
+
 #include <WiFi.h>
 
 #define MOTOR_A_MAX_SPEED 1023 // 400
@@ -106,6 +109,7 @@ void interface_initial() {
   WiFi.setTxPower(WIFI_POWER_19_5dBm);    // Set WiFi RF power output to highest level
   //  WiFi.setMode(WiFi_STA);
   WiFi.softAP(ssid , pass);
+  webSerialInitial();
   //  WiFi.begin(ssid , pass);
   //  while (!WiFi.status() != WL_CONNECTED) {
   //    Serial.print(".");
