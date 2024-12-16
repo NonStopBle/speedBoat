@@ -56,7 +56,7 @@ void mainControl() {
     if (joystickConnected) {
       if (modeSelector == 0) {
         if (joyAxis(ThrottleR , 50) > 0 && joyAxis(ThrottleR , 50) > 0) {
-          motorDriverRun((int16_t) (joyAxis(Ry , 50) * MOTOR_NORMAL_GAIN * (joyAxis(ThrottleR , 50) * 0.004) )  , 0.999 , (int16_t)(joyAxis(Ly , 50) * MOTOR_NORMAL_GAIN * (joyAxis(ThrottleL , 50) * 0.004 )) , 0.999);
+          motorDriverRun((int16_t) (joyAxis(Ry , 50) * MOTOR_NORMAL_GAIN + (joyAxis(ThrottleR , 50) * 0.004) )  , 0.999 , (int16_t)(joyAxis(Ly , 50) * MOTOR_NORMAL_GAIN + (joyAxis(ThrottleL , 50) * 0.004 )) , 0.999);
         }
         else
         {
