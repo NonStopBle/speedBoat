@@ -6,6 +6,9 @@ int16_t joyAxisRx = 0;
 int16_t joyAxisRy = 0;
 int16_t joyAxisLx = 0;
 int16_t joyAxisLy = 0;
+int16_t joyAxisR2  = 0;
+int16_t joyAxisL2  = 0;
+
 
 bool joystickConnected = false;
 
@@ -27,6 +30,9 @@ enum JoyAnalogControl {
   Ly = 1,
   Rx = 2,
   Ry = 3,
+  ThrottleL = 4,
+  ThrottleR = 5,
+  
 } ;
 union BoolConverter //Union data for convertion between byte and bit
 {
@@ -82,6 +88,24 @@ int16_t joyAxis(JoyAnalogControl _param , int16_t deathZone) {
     case Ry:
       if (abs(joyAxisRy) > deathZone) {
         return -joyAxisRy;
+      }
+      else {
+        return 0;
+      }
+      break;
+
+    case ThrottleL  :
+      if (abs(joyAxisL2) > deathZone) {
+        return joyAxisL2;
+      }
+      else {
+        return 0;
+      }
+      break;
+      
+    case ThrottleR :
+      if (abs(joyAxisR2) > deathZone) {
+        return joyAxisR2;
       }
       else {
         return 0;
@@ -187,6 +211,9 @@ void processGamepad(ControllerPtr ctl) {
   joyAxisRy = ctl->axisRY();
   joyAxisLx = ctl->axisX();
   joyAxisLy = ctl->axisY();
+  joyAxisL2 = ctl->throttle();
+  joyAxisR2 = ctl->throttle();
+
   joyButtonBasic.asByte  = ctl->buttons();
 }
 
@@ -205,6 +232,25 @@ void processControllers() {
 }
 
 void joystick_initial() {
+
+  joyButtonBasic.asBool.bit0 = 0;
+  joyButtonBasic.asBool.bit1 = 0;
+  joyButtonBasic.asBool.bit2 = 0;
+  joyButtonBasic.asBool.bit3 = 0;
+  joyButtonBasic.asBool.bit4 = 0;
+  joyButtonBasic.asBool.bit5 = 0;
+  joyButtonBasic.asBool.bit6 = 0;
+  joyButtonBasic.asBool.bit7 = 0;
+  joyButtonBasic.asBool.bit8 = 0;
+  joyButtonBasic.asBool.bit9 = 0;
+  joyButtonBasic.asBool.bit10 = 0;
+  joyButtonBasic.asBool.bit11 = 0;
+  joyButtonBasic.asBool.bit12 = 0;
+  joyButtonBasic.asBool.bit13 = 0;
+  joyButtonBasic.asBool.bit14 = 0;
+  joyButtonBasic.asBool.bit15 = 0;
+
+
   Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
   const uint8_t* addr = BP32.localBdAddress();
   Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
@@ -214,11 +260,57 @@ void joystick_initial() {
   BP32.forgetBluetoothKeys();
   BP32.enableVirtualDevice(false);
 
+
+
+}
+
+uint8_t joystick_mode_selector(ControllerPtr ctl) {
+  static uint8_t modeSelector = 0;
+  static bool onetime[4] = {};
+
+
+  if (joyButton(R1)) {
+    onetime[0] = true;
+  }
+  else {
+    if (onetime[0] == true) {
+      modeSelector++;
+      onetime[0] = false;
+    }
+  }
+
+  if (modeSelector >= 3) {
+    modeSelector = 0;
+  }
+
+  if (modeSelector == 0 && onetime[1] == false) {
+    ctl->setColorLED(255, 0, 0);
+    onetime[1] = true;
+    onetime[0] = false;
+    onetime[3] = false;
+  }
+  else if (modeSelector == 1 && onetime[2] == false) {
+    ctl->setColorLED(0, 255, 0);
+    onetime[2] = true;
+    onetime[1] = false;
+    onetime[3] = false;
+  }
+  else if (modeSelector == 2 && onetime[3] == false) {
+    ctl->setColorLED(0, 0, 255);
+    onetime[3] = true;
+    onetime[2] = false;
+    onetime[1] = false;
+  }
+
+  return modeSelector;
 }
 
 void joystick_run() {
   bool dataUpdated = BP32.update();
   if (dataUpdated) {
     processControllers();
+    if (joystickConnected) {
+      modeSelector = joystick_mode_selector(myControllers[0]);
+    }
   }
 }
