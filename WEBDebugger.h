@@ -1,4 +1,4 @@
-  #include <Arduino.h>
+#include <Arduino.h>
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
@@ -23,6 +23,13 @@ void recvMsg(uint8_t *data, size_t len) {
   WebSerial.println(d);
 }
 
+void webSerialPrint(String msg) {
+  static uint32_t previousTime = 0;
+  if (millis() - previousTime > 10) {
+    WebSerial.println(msg);
+    previousTime = millis();
+  }
+}
 void webSerialInitial() {
 
   Serial.print("IP Address: ");
