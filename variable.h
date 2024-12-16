@@ -1,7 +1,7 @@
 //#include "soc/gpio_struct.h"  // For low-level GPIO control
 //#include "driver/gpio.h"      // For GPIO configuration
 
-void webSerialInitial();
+bool initialDebug = false;
 
 #include <WiFi.h>
 
@@ -36,7 +36,7 @@ void webSerialInitial();
 
 bool isRCRemote = false;
 float imu_readable = 0.00f;
-
+bool isConnected = false;
 #define MOTOR_A_HEADING_MAX_SPEED 400
 #define MOTOR_B_HEADING_MAX_SPEED 400
 
@@ -104,12 +104,49 @@ void motor_initial() {
 }
 
 
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+  Serial.println("Connected to AP successfully!");
+}
+
+void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  isConnected = true;
+}
+
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+  Serial.println("Disconnected from WiFi access point");
+  Serial.print("WiFi lost connection. Reason: ");
+  Serial.println(info.wifi_sta_disconnected.reason);
+  Serial.println("Trying to Reconnect");
+  WiFi.begin(ssid, pass);
+  isConnected = false;
+  initialDebug = false;
+}
+
+
 void interface_initial() {
+
   Serial.begin(115200);
-  WiFi.setTxPower(WIFI_POWER_19_5dBm);    // Set WiFi RF power output to highest level
-  //  WiFi.setMode(WiFi_STA);
-  WiFi.softAP(ssid , pass);
-  webSerialInitial();
+
+  // delete old config
+  WiFi.disconnect(true);
+
+  delay(1000);
+
+  WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(WiFiGotIP, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+  WiFi.begin(ssid, pass);
+
+  Serial.println();
+  Serial.println();
+  Serial.println("Wait for WiFi... ");
+
+
+
   //  WiFi.begin(ssid , pass);
   //  while (!WiFi.status() != WL_CONNECTED) {
   //    Serial.print(".");
